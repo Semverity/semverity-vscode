@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Semverity/semverity-vscode/security/advisories/new
+    about: Please report vulnerabilities privately, not as a public issue. See SECURITY.md.
+  - name: A score looks wrong
+    url: https://semverity.dev
+    about: Scores come from the Semverity service. Questions about a package's score belong on its package page or with Semverity, not in this repository.

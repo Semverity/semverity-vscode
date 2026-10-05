@@ -1,0 +1,13 @@
+# Only the bundle, the manifest, the icon and the user-facing docs ship in the
+# .vsix. Everything else (sources, tests, scripts, workflows, design notes) is
+# excluded by the first line.
+**
+!dist/extension.js
+!package.json
+!images/icon.png
+!README.md
+!CHANGELOG.md
+!LICENSE
+!NOTICE
+!THIRD_PARTY_NOTICES.txt
+!SECURITY.md

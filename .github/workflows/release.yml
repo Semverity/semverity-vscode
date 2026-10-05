@@ -1,0 +1,204 @@
+name: Release
+
+# Runs when a version tag (v0.1.0, v0.2.0 ...) is pushed. The tag must match
+# the version in package.json and point at a commit on main. The workflow
+# checks and packages the extension, attaches the .vsix to a GitHub release,
+# and then publishes it to the Visual Studio Marketplace and Open VSX when the
+# VSCE_PAT and OVSX_PAT secrets of the `release` environment exist. A missing
+# secret skips that registry with a message; it is not an error. A tag with a
+# hyphen (v0.2.0-rc.1) only creates a GitHub prerelease.
+#
+# The publish jobs run in the `release` environment, which should require a
+# reviewer and allow only v* tags (see CONTRIBUTING.md). They use the vsce and
+# ovsx versions locked in package-lock.json, installed without install
+# scripts, so nothing fetched at publish time runs with a publisher token.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Check and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+          # Every branch, so the tag can be checked against main.
+          fetch-depth: 0
+
+      - name: Tag is on main
+        run: |
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "::error::${GITHUB_REF_NAME} points at a commit that is not on main; releases are made from main only."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Tag matches package.json
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${version}."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Third-party notices are current
+        run: npm run notices:check
+
+      - name: Package
+        run: npm run package
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '
+            /^## \[/ { if (found) exit; if (index($0, "[" v "]")) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "See CHANGELOG.md." > release-notes.md
+          fi
+          cat release-notes.md
+
+      - name: Upload the .vsix
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: semverity-vsix
+          path: |
+            semverity.vsix
+            release-notes.md
+          if-no-files-found: error
+
+  github-release:
+    name: GitHub release
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the .vsix
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: semverity-vsix
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          prerelease=""
+          case "${GITHUB_REF_NAME}" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "${GITHUB_REF_NAME}" semverity.vsix \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file release-notes.md \
+            --verify-tag ${prerelease}
+
+  marketplace:
+    name: Visual Studio Marketplace
+    needs: [package, github-release]
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      # The publisher tools come from package-lock.json (integrity checked);
+      # no install script runs.
+      - name: Install the locked tools
+        run: npm ci --ignore-scripts
+
+      - name: Download the .vsix
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: semverity-vsix
+
+      - name: Publish
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            *-*) echo "${GITHUB_REF_NAME} is a prerelease tag; skipping the Visual Studio Marketplace."; exit 0 ;;
+          esac
+          if [ -z "${VSCE_PAT}" ]; then
+            echo "VSCE_PAT is not set in the release environment; skipping the Visual Studio Marketplace."
+            exit 0
+          fi
+          # vsce reads the token from the VSCE_PAT environment variable.
+          ./node_modules/.bin/vsce publish --packagePath semverity.vsix
+
+  open-vsx:
+    name: Open VSX
+    needs: [package, github-release]
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      # The publisher tools come from package-lock.json (integrity checked);
+      # no install script runs.
+      - name: Install the locked tools
+        run: npm ci --ignore-scripts
+
+      - name: Download the .vsix
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: semverity-vsix
+
+      - name: Publish
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            *-*) echo "${GITHUB_REF_NAME} is a prerelease tag; skipping Open VSX."; exit 0 ;;
+          esac
+          if [ -z "${OVSX_PAT}" ]; then
+            echo "OVSX_PAT is not set in the release environment; skipping Open VSX."
+            exit 0
+          fi
+          # ovsx reads the token from the OVSX_PAT environment variable.
+          ./node_modules/.bin/ovsx publish semverity.vsix

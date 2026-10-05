@@ -1,0 +1,458 @@
+{
+  "name": "semverity-vscode",
+  "displayName": "Semverity",
+  "description": "See the Semverity score of every open source dependency as you import it: headline score, security grade, gates and a healthy version, inline in the editor.",
+  "version": "0.1.0",
+  "publisher": "semverity",
+  "license": "Apache-2.0",
+  "pricing": "Free",
+  "preview": true,
+  "author": {
+    "name": "Cliff Colvin"
+  },
+  "homepage": "https://semverity.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Semverity/semverity-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Semverity/semverity-vscode/issues"
+  },
+  "qna": "https://github.com/Semverity/semverity-vscode/issues",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#0f172a",
+    "theme": "dark"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "dependencies",
+    "supply chain",
+    "security",
+    "open source",
+    "npm",
+    "pypi",
+    "go modules",
+    "sca",
+    "score",
+    "vulnerabilities"
+  ],
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=22",
+      "onFail": "warn"
+    }
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:python",
+    "onLanguage:go",
+    "onLanguage:pip-requirements",
+    "onLanguage:go.mod",
+    "workspaceContains:**/package.json",
+    "workspaceContains:**/requirements*.txt",
+    "workspaceContains:**/pyproject.toml",
+    "workspaceContains:**/go.mod"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In an untrusted workspace Semverity reads manifests and imports but ignores workspace values of the network, ecosystem and privacy settings that could widen what is sent. In any workspace, a workspace can turn lookups or an ecosystem off but never back on after you turned it off.",
+      "restrictedConfigurations": [
+        "semverity.network.enabled",
+        "semverity.ecosystems.npm",
+        "semverity.ecosystems.pypi",
+        "semverity.ecosystems.golang",
+        "semverity.privacy.excludeNpmrcScopes",
+        "semverity.privacy.lookupUndeclaredImports"
+      ]
+    },
+    "virtualWorkspaces": {
+      "supported": "limited",
+      "description": "Lockfiles and .npmrc files are read through the workspace file system; packages are still looked up by name and version only."
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "semverity.checkWorkspace",
+        "title": "Check Workspace Dependencies",
+        "category": "Semverity",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "semverity.openPackagePage",
+        "title": "Open Package Page",
+        "category": "Semverity",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "semverity.refresh",
+        "title": "Refresh Scores",
+        "category": "Semverity",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "semverity.clearCache",
+        "title": "Clear Cached Scores",
+        "category": "Semverity"
+      },
+      {
+        "command": "semverity.setApiKey",
+        "title": "Set API Key",
+        "category": "Semverity"
+      },
+      {
+        "command": "semverity.clearApiKey",
+        "title": "Clear API Key",
+        "category": "Semverity"
+      },
+      {
+        "command": "semverity.toggleLookups",
+        "title": "Turn Network Lookups On or Off",
+        "category": "Semverity"
+      },
+      {
+        "command": "semverity.showLog",
+        "title": "Show Log",
+        "category": "Semverity"
+      },
+      {
+        "command": "semverity.applyVersion",
+        "title": "Apply Healthy Version",
+        "category": "Semverity"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "semverity.applyVersion",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "semverity.checkWorkspace",
+          "when": "view == semverity.dependencies",
+          "group": "navigation@1"
+        },
+        {
+          "command": "semverity.refresh",
+          "when": "view == semverity.dependencies",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "semverity.openPackagePage",
+          "when": "view == semverity.dependencies && viewItem =~ /^semverity\\.package/",
+          "group": "inline"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "semverity.dependencies",
+          "name": "Semverity",
+          "icon": "$(shield)",
+          "contextualTitle": "Semverity"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "semverity.dependencies",
+        "contents": "Score every dependency declared in this workspace's manifests.\n[Check Workspace Dependencies](command:semverity.checkWorkspace)\nOnly package names and versions are sent to the Semverity API. [What is sent](https://github.com/Semverity/semverity-vscode#what-is-sent)"
+      }
+    ],
+    "colors": [
+      {
+        "id": "semverity.gradeA",
+        "description": "Inline score text for grade A (90 and above).",
+        "defaults": {
+          "dark": "#4ade80",
+          "light": "#15803d",
+          "highContrast": "#4ade80",
+          "highContrastLight": "#166534"
+        }
+      },
+      {
+        "id": "semverity.gradeB",
+        "description": "Inline score text for grade B (80 to 89).",
+        "defaults": {
+          "dark": "#a3e635",
+          "light": "#4d7c0f",
+          "highContrast": "#a3e635",
+          "highContrastLight": "#3f6212"
+        }
+      },
+      {
+        "id": "semverity.gradeC",
+        "description": "Inline score text for grade C (65 to 79).",
+        "defaults": {
+          "dark": "#facc15",
+          "light": "#a16207",
+          "highContrast": "#facc15",
+          "highContrastLight": "#854d0e"
+        }
+      },
+      {
+        "id": "semverity.gradeD",
+        "description": "Inline score text for grade D (50 to 64).",
+        "defaults": {
+          "dark": "#fb923c",
+          "light": "#c2410c",
+          "highContrast": "#fb923c",
+          "highContrastLight": "#9a3412"
+        }
+      },
+      {
+        "id": "semverity.gradeF",
+        "description": "Inline score text for grade F (below 50) and for malware and KEV gates.",
+        "defaults": {
+          "dark": "#f87171",
+          "light": "#b91c1c",
+          "highContrast": "#f87171",
+          "highContrastLight": "#991b1b"
+        }
+      },
+      {
+        "id": "semverity.unscored",
+        "description": "Inline text for packages that are not scored, pending, excluded or stale.",
+        "defaults": {
+          "dark": "descriptionForeground",
+          "light": "descriptionForeground",
+          "highContrast": "descriptionForeground",
+          "highContrastLight": "descriptionForeground"
+        }
+      }
+    ],
+    "configuration": {
+      "title": "Semverity",
+      "properties": {
+        "semverity.network.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Look packages up on the Semverity API. When off, nothing is sent anywhere and only cached scores are shown (marked stale once they age out). Off at any level (user, workspace or folder) wins, so a workspace cannot turn lookups back on."
+        },
+        "semverity.api.baseUrl": {
+          "type": "string",
+          "default": "https://api.semverity.dev",
+          "scope": "application",
+          "markdownDescription": "Base URL of the Semverity API. Only package coordinates (ecosystem, name, version) are sent to it. Set in user settings only, so a workspace cannot redirect lookups or the API key."
+        },
+        "semverity.site.baseUrl": {
+          "type": "string",
+          "default": "https://semverity.dev",
+          "scope": "application",
+          "markdownDescription": "Base URL of the Semverity web site, used for package page links (`/registry/{ecosystem}/{name}`)."
+        },
+        "semverity.ecosystems.npm": {
+          "type": "boolean",
+          "default": true,
+          "description": "Score JavaScript and TypeScript imports and package.json dependencies (npm)."
+        },
+        "semverity.ecosystems.pypi": {
+          "type": "boolean",
+          "default": true,
+          "description": "Score Python imports and requirements*.txt and pyproject.toml dependencies (PyPI)."
+        },
+        "semverity.ecosystems.golang": {
+          "type": "boolean",
+          "default": true,
+          "description": "Score Go imports and go.mod requirements (Go modules)."
+        },
+        "semverity.decorations.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the compact score (shield, headline score and grade) at the end of import and manifest lines."
+        },
+        "semverity.decorations.showUnscored": {
+          "type": "boolean",
+          "default": true,
+          "description": "Also decorate packages that are not scored yet, pending or excluded (in a muted colour)."
+        },
+        "semverity.hovers.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Semverity card when hovering an import or a manifest dependency."
+        },
+        "semverity.diagnostics.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Report low scores and fired gates in the Problems panel. Malware and KEV (known exploited vulnerability) gates are always reported as errors while diagnostics are on."
+        },
+        "semverity.diagnostics.scoreBasis": {
+          "type": "string",
+          "enum": [
+            "headline",
+            "own"
+          ],
+          "enumDescriptions": [
+            "The headline score: the package together with everything it depends on.",
+            "The package's own score, without its dependencies."
+          ],
+          "default": "headline",
+          "description": "Which score the thresholds compare against."
+        },
+        "semverity.diagnostics.warningBelow": {
+          "type": "number",
+          "default": 65,
+          "minimum": 0,
+          "maximum": 100,
+          "markdownDescription": "Report a warning when the score is below this value (65 is the bottom of grade C). `0` turns score warnings off."
+        },
+        "semverity.diagnostics.errorBelow": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 100,
+          "markdownDescription": "Report an error when the score is below this value. `0` (the default) turns score errors off."
+        },
+        "semverity.diagnostics.gates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "high_vuln_with_fix",
+              "unfixed_high_vuln",
+              "moderate_vuln_with_fix",
+              "yanked",
+              "typosquat",
+              "install_script_untrusted",
+              "dependency_confusion",
+              "denied_package",
+              "license_denied",
+              "archived",
+              "prerelease",
+              "min_age",
+              "bus_factor_one",
+              "no_provenance",
+              "source_repo_missing",
+              "unpinned"
+            ]
+          },
+          "default": [
+            "high_vuln_with_fix",
+            "unfixed_high_vuln",
+            "yanked",
+            "typosquat",
+            "install_script_untrusted",
+            "dependency_confusion",
+            "denied_package",
+            "license_denied"
+          ],
+          "markdownDescription": "Gates that raise a warning when they fire. `malware` and `kev` are not listed because they always raise an error."
+        },
+        "semverity.privacy.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "Package names that are never sent. `*` matches any characters and `?` one character; prefix with `npm:`, `pypi:` or `golang:` to limit a pattern to one ecosystem. Examples: `@acme/*`, `acme-*`, `golang:git.example.com/*`."
+        },
+        "semverity.privacy.excludeNpmrcScopes": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Never send npm packages that the registry configuration binds to a registry other than the public one: `@scope:registry=` and `registry=` in `.npmrc`, `.yarnrc`, `.yarnrc.yml` (`npmScopes`, `npmRegistryServer`), `bunfig.toml` (`[install.scopes]`, `[install] registry`) and `NPM_CONFIG_REGISTRY`. With a private default registry, unscoped packages are sent only when a lockfile shows a public source."
+        },
+        "semverity.privacy.trustedRegistryHosts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "application",
+          "markdownDescription": "Registry hosts that mirror the public registries (for example a company proxy of npm or PyPI). Packages a lockfile, `.npmrc` scope or pip index resolves from any other non-public host are never sent. User settings only."
+        },
+        "semverity.privacy.lookupUndeclaredImports": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Look up imports that no manifest declares (at their latest version). Imports that resolve to a module or package inside the workspace are never sent either way."
+        },
+        "semverity.cache.ttlHours": {
+          "type": "number",
+          "default": 24,
+          "minimum": 1,
+          "maximum": 168,
+          "description": "How long a score without its own Cache-Control lifetime is used before it is checked again, and after how long a score that could not be rechecked is shown as stale."
+        },
+        "semverity.cache.negativeTtlMinutes": {
+          "type": "number",
+          "default": 60,
+          "minimum": 5,
+          "maximum": 1440,
+          "description": "How long an answer that a package is not scored is kept before asking again."
+        },
+        "semverity.network.maxRequestsPerMinute": {
+          "type": "number",
+          "default": 60,
+          "minimum": 1,
+          "maximum": 60,
+          "description": "Upper bound on HTTP requests to the Semverity API per minute. The extension also stays within the API's own per-address allowance (60 lookups a minute signed out)."
+        },
+        "semverity.editDebounceMs": {
+          "type": "number",
+          "default": 600,
+          "minimum": 100,
+          "maximum": 5000,
+          "description": "Milliseconds to wait after the last edit before looking up new imports."
+        },
+        "semverity.statusBar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Semverity summary of the open file in the status bar."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "build:production": "node esbuild.mjs --production",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc -p . --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "notices": "node scripts/third-party-notices.mjs",
+    "notices:check": "node scripts/third-party-notices.mjs --check",
+    "check": "npm run lint && npm run typecheck && npm test && npm run notices:check",
+    "check:bundle": "node scripts/check-bundle.mjs",
+    "package": "vsce package --no-dependencies --out semverity.vsix",
+    "vscode:prepublish": "npm run build:production && npm run check:bundle"
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1",
+    "semver": "^7.8.5",
+    "smol-toml": "^1.9.0",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^20.19.43",
+    "@types/semver": "^7.8.0",
+    "@types/vscode": "1.100.0",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "marked": "18.1.0",
+    "ovsx": "1.2.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  }
+}

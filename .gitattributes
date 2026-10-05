@@ -1,0 +1,6 @@
+# Keep line endings stable across Linux, macOS and Windows checkouts so lint,
+# tests and the notices check behave the same on every CI runner.
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.vsix binary

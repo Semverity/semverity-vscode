@@ -1,0 +1,53 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`hoverMarkdown for other states > says a version is not scored, with the latest scored version, signed out 1`] = `
+"$(shield) **lodash** 4.17.21 · npm · locked version (package-lock.json)
+
+Semverity has not scored lodash 4.17.21 yet.  
+Latest scored version: 4.18.1 (≤83 B)  
+With an API key, Semverity collects public packages it has not seen ([Set API Key](command:semverity.setApiKey)).
+
+[Open on semverity.dev](https://semverity.dev/registry/npm/lodash)"
+`;
+
+exports[`hoverMarkdown for scored results > explains a low score 1`] = `
+"$(shield) **lodash** 4.17.21 · npm · locked version (package-lock.json)
+
+**58 D** with dependencies  
+Own score **80 B** · Security **B** (87) · Evidence coverage 91%
+
+**Why the score is low**
+
+- Weakest dependency: \`minimist\` 1.2.0 (own 41), 12.3 points
+- \`@scope/evil\` 1.0.0 carries a gate (Known exploited vulnerability (KEV)), 8.0 points
+- Lowest areas: Community 40, Best practices 52
+- Community and bus factor\\: only 35% of the evidence available
+- second
+
+[Open on semverity.dev](https://semverity.dev/registry/npm/lodash/versions/4.17.21) · scored 2026-09-29 · checked 3 h ago"
+`;
+
+exports[`hoverMarkdown for scored results > lists malware and KEV first, then other hard gates, then soft gates 1`] = `
+"$(shield) **lodash** 4.17.21 · npm · locked version (package-lock.json)
+
+**0 F** with dependencies  
+Own score **80 B** · Security **B** (87) · Evidence coverage 91%
+
+**Gates**  
+$(error) Malware finding: MAL-2026-1  
+$(error) Known exploited vulnerability (KEV): CVE-2026-0001 is KEV-listed  
+$(warning) High severity advisory with a fix: GHSA-r5fr-rjxr-66jc (HIGH). bump to 4.18.0  
+$(warning) High severity advisory without a fix  
+$(info) No build provenance
+
+[Open on semverity.dev](https://semverity.dev/registry/npm/lodash/versions/4.17.21) · scored 2026-09-29 · checked 3 h ago"
+`;
+
+exports[`hoverMarkdown for scored results > renders a complete headline 1`] = `
+"$(shield) **lodash** 4.17.21 · npm · locked version (package-lock.json)
+
+**83 B** with dependencies  
+Own score **85 B** · Security **B** (87) · Evidence coverage 91%
+
+[Open on semverity.dev](https://semverity.dev/registry/npm/lodash/versions/4.17.21) · scored 2026-09-29 · checked 3 h ago"
+`;

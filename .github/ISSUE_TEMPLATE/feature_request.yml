@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest an improvement to the extension.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: How the extension could help. Mockups and examples are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Data sent
+      description: |
+        The extension sends only package coordinates (ecosystem, name, version).
+        If the idea would need anything else to leave the machine, say what and why.

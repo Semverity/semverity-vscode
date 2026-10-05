@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Markdown safety of untrusted text > bare URLs, www hosts and email addresses in untrusted text never autolink 1`] = `
+"$(shield) **lodash** 4.17.21 · npm · locked version
+
+**40 F** with dependencies  
+Own score **80 B** · Security **B** (87) · Evidence coverage 91%
+
+**Gates**  
+$(warning) Yanked, retracted or deprecated version: moved to https\\://evil.example and www\\.evil.example, ask a\\@evil.example. moved to https\\://evil.example and www\\.evil.example, ask a\\@evil.example
+
+**Why the score is low**
+
+- moved to https\\://evil.example and www\\.evil.example, ask a\\@evil.example
+
+[Open on semverity.dev](https://semverity.dev/registry/npm/lodash/versions/4.17.21) · scored 2026-09-29 · checked 3 h ago"
+`;
+
+exports[`Markdown safety of untrusted text > theme icon syntax in untrusted text is escaped 1`] = `
+"$(shield) **lodash** 4.17.21 · npm · locked version
+
+**40 F** with dependencies  
+Own score **80 B** · Security **B** (87) · Evidence coverage 91%
+
+**Gates**  
+$(warning) Yanked, retracted or deprecated version: \\$(rocket) \\$(sync\\~spin) \\$(zap)
+
+**Why the score is low**
+
+- \\$(rocket) \\$(sync\\~spin) \\$(zap)
+
+[Open on semverity.dev](https://semverity.dev/registry/npm/lodash/versions/4.17.21) · scored 2026-09-29 · checked 3 h ago"
+`;
