@@ -26,7 +26,7 @@ There is no automated extension host test, because `@vscode/test-electron` and `
 
 ## Minimum VS Code version and Node.js
 
-`engines.vscode` is `^1.100.0`, whose extension host runs Node.js 20, so the bundle targets `node20` and `@types/node` stays on major 20 (dependabot ignores its major updates). Raising the minimum to `^1.101.0` would allow Node.js 22 in the extension host; if we do, change the esbuild target to `node22` and move `@types/node` to major 22 in the same change. Contributors need Node.js 22 for the build tools; `devEngines` in `package.json` warns rather than fails on an older one.
+`engines.vscode` is `^1.100.0`, whose extension host runs Node.js 20, so the bundle targets `node20`. `@types/node` is on major 22 (vitest 5 requires `^22 || >=24` as a peer, and npm 10 refuses the install with major 20), so the type checker does not catch Node.js 22-only APIs; nothing in the extension uses one today. Raising the minimum to `^1.101.0` would allow Node.js 22 in the extension host; if we do, change the esbuild target to `node22` in the same change. Contributors need Node.js 22 for the build tools; `devEngines` in `package.json` warns rather than fails on an older one.
 
 ## GitHub Actions majors
 

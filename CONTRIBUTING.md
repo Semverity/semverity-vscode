@@ -6,7 +6,7 @@ By contributing you agree that your contribution is licensed under the Apache Li
 
 ## Setup
 
-You need Node.js 22 or later (for the build tools; `devEngines` in `package.json` warns on an older one) and VS Code 1.100 or later. The extension itself runs in the VS Code extension host, which is Node.js 20 for VS Code 1.100, so the bundle targets `node20` and `@types/node` stays on major 20. Raise both, with `engines.vscode`, when the minimum VS Code version moves.
+You need Node.js 22 or later (for the build tools; `devEngines` in `package.json` warns on an older one) and VS Code 1.100 or later. The extension itself runs in the VS Code extension host, which is Node.js 20 for VS Code 1.100, so the bundle targets `node20`. `@types/node` is on major 22 because the test runner (vitest) requires it as a peer, so the types allow a few Node.js 22 APIs the extension host lacks: use only APIs that exist in Node.js 20. Move the esbuild target with `engines.vscode` when the minimum VS Code version moves.
 
 ```sh
 git clone https://github.com/Semverity/semverity-vscode.git

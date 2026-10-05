@@ -17,9 +17,9 @@ updates:
       # together by hand when the supported VS Code range moves.
       - dependency-name: "@types/vscode"
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
-      # @types/node tracks the Node.js version of the extension host in the
-      # minimum engines.vscode (Node 20 for VS Code 1.100) and the esbuild
-      # target; raise its major by hand together with those.
+      # @types/node stays on the major vitest accepts as a peer (22); the
+      # extension host of the minimum engines.vscode runs Node 20 (see
+      # CONTRIBUTING). Raise its major by hand.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
 
